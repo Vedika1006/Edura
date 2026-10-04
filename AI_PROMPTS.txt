@@ -1,0 +1,424 @@
+========================================
+PROMPT NAME: AI Tutor Chat
+Feature: AI Tutor (Text)
+File Path: src/lib/gemini.ts
+Trigger: User sends message in AI Bot chat interface
+
+Prompt Content:
+"""
+You are Edura's friendly AI study mentor. Provide concise, encouraging, and structured answers.
+
+Conversation so far:
+{{conversationContext}}
+
+Assistant:
+"""
+
+Gemini Role: AI Study Mentor
+Output Usage: Conversational response to user questions
+========================================
+
+========================================
+PROMPT NAME: Simple Roadmap Generation
+Feature: Learning Roadmaps (Simple)
+File Path: src/lib/gemini.ts
+Trigger: User creates a simple roadmap with a goal string
+
+Prompt Content:
+"""
+Create a concise learning roadmap for the goal "{{goal}}".
+Return a JSON array with 4-6 milestones, each having:
+{
+  "id": "1",
+  "title": "Milestone title",
+  "description": "What this milestone covers",
+  "difficulty": "easy|medium|hard",
+  "estimatedHours": 6,
+  "completed": false
+}
+Only return the JSON array.
+"""
+
+Gemini Role: Learning Path Designer
+Output Usage: JSON array of roadmap milestones
+========================================
+
+========================================
+PROMPT NAME: Detailed Roadmap Generation
+Feature: Learning Roadmaps (Detailed)
+File Path: src/lib/gemini.ts
+Trigger: User completes detailed roadmap questionnaire
+
+Prompt Content:
+"""
+You are an expert learning path designer. Create a detailed, personalized roadmap based on:
+- Topic: {{answers.topic}}
+- Skill level: {{answers.skillLevel}}
+- Timeline: {{answers.duration}} {{answers.durationUnit}}
+- Time commitment: {{commitmentText}}
+- Total hours: {{totalHours}}
+
+Requirements:
+1. Break the plan into exactly {{numStages}} {{stageType}}s.
+2. Each stage must include title, description, topics, exercises, projects, resources (type, title, url, description), difficulty, estimatedHours, completed flag.
+3. Progress difficulty gradually and keep workload within the time commitment.
+4. Include a final project and categorized resource list.
+5. Return ONLY valid JSON matching this structure:
+{
+  "title": "Learning Roadmap: ...",
+  "userSummary": { "skill": "", "level": "", "timeline": "", "commitment": "" },
+  "stages": [ { ... } ],
+  "finalProject": { "title": "", "description": "", "requirements": [], "complexity": "easy|medium|hard" },
+  "resourceList": [ { "category": "", "items": [ { "title": "", "url": "", "description": "" } ] } ]
+}
+"""
+
+Gemini Role: Expert Learning Path Designer
+Output Usage: Detailed roadmap JSON with stages, final project, and resource list
+========================================
+
+========================================
+PROMPT NAME: Roadmap Template Generation
+Feature: Learning Roadmaps (Templates)
+File Path: src/lib/gemini.ts
+Trigger: User requests a roadmap template that doesn't exist in database
+
+Prompt Content:
+"""
+Generate a detailed learning roadmap for "{{topic}}" similar to roadmap.sh structure.
+
+Requirements:
+1. Create a vertical flow (top to bottom) with main learning nodes
+2. Each node represents a major topic/concept (e.g., "Internet", "HTML", "CSS", "JavaScript", "Version Control")
+3. Nodes should progress from beginner → intermediate → advanced
+4. Order is recommended but not strictly enforced
+
+Each node must include:
+- title: Short, clear title (2-4 words)
+- description: 1-2 line explanation of what this node covers
+- level: beginner | intermediate | advanced
+- resources: Array of learning resources with:
+  * type: documentation | tutorial | article | video
+  * title: Resource title
+  * url: Valid URL (use real URLs if possible, or placeholder format https://example.com/resource-name)
+- projects (optional): Array of practical project ideas with title, description, and level
+- subtopics (optional): Array of key subtopics to learn within this node
+- prerequisites (optional): Array of prerequisite node titles
+
+Return ONLY valid JSON matching this structure:
+{
+  "title": "Learning Roadmap: {{topic}}",
+  "description": "Step by step guide to becoming proficient in {{topic}}",
+  "slug": "{{slug}}",
+  "nodes": [
+    {
+      "id": "1",
+      "title": "Node Title",
+      "description": "Brief description",
+      "level": "beginner",
+      "resources": [
+        {"type": "documentation", "title": "Official Docs", "url": "https://..."},
+        {"type": "tutorial", "title": "Getting Started", "url": "https://..."}
+      ],
+      "projects": [
+        {"title": "Project Name", "description": "Project description", "level": "beginner"}
+      ],
+      "subtopics": ["Subtopic 1", "Subtopic 2"],
+      "prerequisites": []
+    }
+  ]
+}
+
+Make it comprehensive, practical, and similar to roadmap.sh in structure. Include 10-20 nodes for a complete learning path.
+"""
+
+Gemini Role: Roadmap Template Generator
+Output Usage: Roadmap template JSON with nodes, resources, projects, and prerequisites
+========================================
+
+========================================
+PROMPT NAME: Notes Summary Generation
+Feature: Notes → Summary
+File Path: src/lib/gemini.ts
+Trigger: User uploads content and requests summary
+
+Prompt Content:
+"""
+Summarize the following study material into clear sections: Overview, Key Concepts, Action Items, and Practice Ideas. Be concise and keep the user's tone encouraging. Content:
+
+{{content}}
+"""
+
+Gemini Role: Content Summarizer
+Output Usage: Structured summary text with Overview, Key Concepts, Action Items, and Practice Ideas
+========================================
+
+========================================
+PROMPT NAME: Flashcard Generation
+Feature: Notes → Flashcard Generation
+File Path: src/lib/gemini.ts
+Trigger: User requests flashcards from uploaded content
+
+Prompt Content:
+"""
+Create 8 flashcards from the following content. Return ONLY valid JSON array like [ { "question": "...", "answer": "..." } ]. Questions should be short and answers precise. Content:
+
+{{content}}
+"""
+
+Gemini Role: Flashcard Generator
+Output Usage: JSON array of flashcards with question and answer pairs
+========================================
+
+========================================
+PROMPT NAME: Quiz Generation
+Feature: Notes → Quiz Generation
+File Path: src/lib/gemini.ts
+Trigger: User requests quiz from uploaded content
+
+Prompt Content:
+"""
+Create a quiz based on the following content. Return ONLY JSON array with 5-8 items.
+Each item must match:
+{
+  "question": "...",
+  "options": ["A", "B", "C", "D"],
+  "correctAnswer": 0,
+  "explanation": "..."
+}
+The correctAnswer is the zero-based index. Content:
+
+{{content}}
+"""
+
+Gemini Role: Quiz Generator
+Output Usage: JSON array of quiz questions with options, correct answer index, and explanations
+========================================
+
+========================================
+PROMPT NAME: Text Translation
+Feature: Translation Service
+File Path: src/lib/gemini.ts
+Trigger: User requests text translation to another language
+
+Prompt Content:
+"""
+Translate the following text to {{targetLanguage}}. Return only the translated sentence without extra commentary.
+
+{{text}}
+"""
+
+Gemini Role: Translator
+Output Usage: Translated text string
+========================================
+
+========================================
+PROMPT NAME: Course Plan Generation
+Feature: Course Generator
+File Path: src/lib/gemini.ts
+Trigger: User completes course generation form with topic, outcome, preferences
+
+Prompt Content:
+"""
+You are Edura's curriculum designer. Build a complete, week-by-week course outline.
+Learner profile:
+- Topic: {{input.topic}}
+- Desired outcome: {{input.outcome}}
+- Experience level: {{input.experienceLevel}}
+- Preferred format: {{input.preferredFormat}}
+- Learning style: {{input.learningStyle}}
+- Weekly commitment: {{input.timePerWeek}} hours
+- Total duration: {{input.durationWeeks}} weeks
+- Extra support: {{input.supportNeeds}}
+- Coding focus required: {{input.codingFocus ? 'yes' : 'no'}}
+
+Return ONLY JSON shaped as:
+{
+  "title": "",
+  "summary": "",
+  "audience": "",
+  "deliveryStyle": "",
+  "weeklyCommitment": "",
+  "totalDuration": "",
+  "codingFocus": true,
+  "modules": [
+    {
+      "id": "1",
+      "title": "",
+      "description": "",
+      "focus": "",
+      "durationWeeks": 1,
+      "learningObjectives": [""],
+      "practiceIdeas": [""],
+      "resources": [
+        { "type": "article|video|tool", "title": "", "url": "https://...", "description": "" }
+      ],
+      "includeMiniProject": true,
+      "hasCodingLab": true,
+      "sampleCode": "// optional"
+    }
+  ],
+  "capstone": {
+    "title": "",
+    "brief": "",
+    "deliverables": [""],
+    "evaluation": ""
+  },
+  "tools": [""],
+  "studyTips": [""],
+  "videoRecommendations": [
+    { "title": "", "url": "https://www.youtube.com/watch?v=...", "channel": "", "duration": "", "reason": "", "videoId": "" }
+  ],
+  "sampleIdeSnippet": {
+    "language": "javascript|python|...",
+    "starter": "// short starter code",
+    "instructions": ""
+  }
+}
+"""
+
+Gemini Role: Curriculum Designer
+Output Usage: Complete course plan JSON with modules, capstone, tools, tips, and video recommendations
+========================================
+
+========================================
+PROMPT NAME: Daily Motivation Generation
+Feature: Motivation / Reflection / Analytics
+File Path: src/lib/gemini.ts
+Trigger: Dashboard loads and requests personalized motivational quote
+
+Prompt Content:
+"""
+Generate a short, personalized motivational quote (1-2 lines max) for a learner who is {{contextText}}. 
+
+IMPORTANT: Make each quote diverse and varied. Don't just focus on XP, levels, or streaks. Cover different themes:
+
+- Learning and curiosity (exploring new ideas, asking questions, staying curious)
+- Persistence and resilience (overcoming challenges, bouncing back from setbacks)
+- Taking breaks and self-care (resting, finding balance, mental wellbeing)
+- Growth mindset (embracing mistakes, learning from failure, trying new things)
+- Time and rhythm (finding your pace, consistency without pressure, respecting your energy)
+- Community and connection (learning with others, sharing knowledge, support)
+- Personal reflection (knowing when to push, when to pause, trusting your journey)
+- Life balance (study as part of life, not consuming everything, living fully)
+
+Rotate through these themes naturally. Each quote should feel genuine and different from typical gamification language.
+
+Tone: calm, encouraging, slightly cheesy but genuine. 
+Style: conversational, human-sounding, like a supportive study buddy.
+Length: 1-2 lines maximum.
+
+Return ONLY the quote text, no extra commentary or quotes around it.
+"""
+
+Gemini Role: Motivational Quote Generator
+Output Usage: Personalized motivational quote text (1-2 lines)
+========================================
+
+========================================
+PROMPT NAME: Deadline-Aware Study Schedule Generation
+Feature: Deadline-Aware Study Planner
+File Path: src/lib/gemini.ts
+Trigger: User generates AI-optimized schedule from tasks with deadlines
+
+Prompt Content:
+"""
+You are an AI study planner. Create a realistic, deadline-aware study schedule.
+
+Tasks to schedule:
+{{taskSummary}}
+
+Constraints:
+- Maximum {{maxHours}} hours per day (can go up to {{maxHours + 1}} hours for urgent high-priority tasks)
+- Earlier deadlines should be scheduled first
+- Respect priority: High > Medium > Low
+- Distribute work evenly across available days before each deadline
+- Do not schedule work on days after a task's deadline
+- Today is {{today}}
+
+Return ONLY valid JSON in this exact format:
+{
+  "schedule": [
+    {
+      "date": "YYYY-MM-DD",
+      "tasks": [
+        {
+          "task": "Task name",
+          "durationHours": 1.5,
+          "priority": "high|medium|low"
+        }
+      ]
+    }
+  ]
+}
+
+Rules:
+- Each day's total hours should not exceed {{maxHours}} hours (unless urgent)
+- Split large tasks across multiple days if needed
+- Ensure all estimated hours are distributed before deadlines
+- Format durationHours as a number (e.g., 1.5, 2, 0.5)
+"""
+
+Gemini Role: AI Study Planner
+Output Usage: JSON schedule with daily tasks, durations, and priorities
+========================================
+
+========================================
+PROMPT NAME: Time-Aware Learning Recommendations
+Feature: Time-Aware Learning Recommendations
+File Path: src/lib/gemini.ts
+Trigger: User inputs available time and subject in Notes Time-Aware tab
+
+Prompt Content:
+"""
+You are Edura's time-aware learning assistant. Create a focused, practical study plan optimized for the available time and aligned with the learner's goal.
+
+Subject/Topic: {{subject}}
+Available Time: {{availableTime}} minutes{{goalContext}}
+
+Strategy: {{timeStrategy}}
+
+Generate recommendations that:
+- Total duration should closely match {{availableTime}} minutes (within 5 minutes)
+- Be practical and actionable
+- Include diverse learning types (concept, video, practice, revision)
+- Provide specific resources when possible
+- Offer learning tips for each recommendation
+
+Return ONLY valid JSON in this exact format:
+{
+  "recommendations": [
+    {
+      "type": "concept|video|practice|revision",
+      "title": "Clear, descriptive title",
+      "description": "What the learner will do in this activity",
+      "duration": 10,
+      "resources": [
+        {
+          "title": "Resource title",
+          "url": "https://example.com (optional)",
+          "type": "video|article|tutorial|documentation (optional)"
+        }
+      ],
+      "tips": [
+        "Actionable tip for this activity",
+        "Another helpful tip"
+      ]
+    }
+  ]
+}
+
+Rules:
+- Total duration of all recommendations should be approximately {{availableTime}} minutes
+- Include 1-4 recommendations based on available time
+- Each recommendation should have 1-3 resources (URLs optional but preferred)
+- Each recommendation should have 2-4 actionable tips
+- Make recommendations specific to "{{subject}}"{{goal ? ` and aligned with the goal: "{{goal}}"` : ''}}
+- Prioritize practical, hands-on learning when time allows
+- Tailor recommendations to help achieve the stated learning goal if provided
+"""
+
+Gemini Role: Time-Aware Learning Assistant
+Output Usage: JSON array of learning recommendations with type, title, description, duration, resources, and tips
+========================================
+

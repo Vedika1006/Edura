@@ -1,0 +1,44 @@
+# Feature Scan — Edura
+
+| # | Feature | Status | Proof |
+|---|---------|--------|-------|
+| 1 | User signup/login (email+password) | **WORKING** | `src/services/authService.ts` (signUp/signIn with Supabase Auth), `src/pages/Login.tsx`, `src/pages/Register.tsx`, routes wired in `src/App.tsx` |
+| 2 | Google/GitHub OAuth login | **NOT PRESENT** | No `signInWithOAuth` or provider-based login anywhere in auth code. Google OAuth exists only for Classroom sync (`src/hooks/useGoogleClassroom.ts`), not for login. |
+| 3 | Password reset | **NOT PRESENT** | No `resetPassword`, `forgotPassword`, or password reset flow in any source file. |
+| 4 | Dashboard with real user stats | **WORKING** | `src/pages/Dashboard.tsx` — fetches real XP/level/streak from `users` table, real course progress from `user_course_progress`, calculates today's modules. |
+| 5 | Dashboard with fake/fallback stats | **WORKING** | `src/pages/Dashboard.tsx:277` — fallback quote on error; `src/services/analyticsService.ts:327` — `getFallbackAnalytics()` returns hardcoded sample data when no real sessions exist. |
+| 6 | AI chat/tutor | **WORKING** | `src/lib/gemini.ts:240` (`chatWithGemini`), `src/pages/AIBot.tsx` page, route `/ai-bot` in `src/App.tsx`. |
+| 7 | AI summary generation from notes | **WORKING** | `src/lib/gemini.ts:360` (`generateSummary`), called from `src/services/notesService.ts:159` (`generateNoteSummary`), used in `src/pages/Notes.tsx`. |
+| 8 | AI flashcard generation | **WORKING** | `src/lib/gemini.ts:371` (`generateFlashcards`), imported and called in `src/pages/Notes.tsx:97`. |
+| 9 | AI quiz generation | **WORKING** | `src/lib/gemini.ts:395` (`generateQuiz`), imported and called in `src/pages/Notes.tsx:135`. |
+| 10 | AI course generation | **WORKING** | `src/lib/gemini.ts:441` (`generateCoursePlan`), `src/services/courseGeneratorService.ts`, `src/pages/Courses.tsx` page, route `/courses`. |
+| 11 | AI roadmap generation (simple) | **WORKING** | `src/lib/gemini.ts:261` (`generateRoadmap`), `src/services/roadmapService.ts`, `src/pages/Roadmap.tsx`, route `/roadmap`. |
+| 12 | AI detailed roadmap generation | **WORKING** | `src/lib/gemini.ts:296` (`generateDetailedRoadmap`) with questionnaire input, used in `src/services/roadmapService.ts`, rendered in `src/pages/Roadmap.tsx`. |
+| 13 | AI roadmap templates with DB caching | **WORKING** | `src/lib/gemini.ts:653` (`generateRoadmapTemplate`), `src/services/roadmapTemplateService.ts` — checks `roadmap_templates` table first, generates via AI on miss, then caches to DB. |
+| 14 | AI study schedule generation | **WORKING** | `src/lib/gemini.ts:759` (`generateAISchedule`), `src/pages/StudyPlanner.tsx`, route `/study-planner`. Fallback algo at `src/utils/generateSchedule.js`. |
+| 15 | AI time-aware recommendations | **WORKING** | `src/lib/gemini.ts:878` (`generateTimeAwareRecommendations`), `src/services/timeAwareService.ts` wraps it. Used in `src/pages/StudyPlanner.tsx`. |
+| 16 | AI daily motivation quote | **WORKING** | `src/lib/gemini.ts:595` (`generateDailyMotivation`), called from `src/pages/Dashboard.tsx:215` (`loadDailyQuote`), cached in localStorage per day. |
+| 17 | AI translation (Gemini-based) | **WORKING** | `src/lib/gemini.ts:430` (`translateText` via Gemini), used as fallback in `src/hooks/useTranslation.ts`. |
+| 18 | RAG pipeline (chunk + embed + retrieve + answer) | **WORKING** | `src/services/ragService.ts` — `chunkText`, `generateEmbedding`, `storeEmbeddings`, `retrieveRelevantChunks` (via `match_embeddings` RPC on pgvector), `generateRAGResponse`. Full pipeline implemented. |
+| 19 | PDF text extraction | **WORKING** | `src/services/notesService.ts:45` (`extractTextFromFile`) — dynamically imports `pdfjs-dist`, reads all pages, extracts text. Used in Notes page file upload. |
+| 20 | Notes CRUD (create/read/update/delete) | **WORKING** | `src/services/notesService.ts` — `createNote`, `getUserNotes`, `deleteNote` (all Supabase). No explicit `updateNote` function but create/read/delete are complete. Route `/notes`. |
+| 21 | Pomodoro/Focus timer | **WORKING** | `src/pages/FocusRoom.tsx` — configurable timer (focus/break modes), countdown, XP on completion, ambient sounds via `src/hooks/useSoundPlayer.ts`. Route `/focus`. |
+| 22 | XP/level/streak tracking | **WORKING** | `src/store/userStore.ts` (`addXP` with level calc), `src/services/userService.ts` (`updateUserXP`, `updateUserStreak` — writes to Supabase `users` table). Dashboard displays all three. |
+| 23 | Study session recording to DB | **CODE EXISTS** | `study_sessions` table defined in `supabase-schema.sql`, read in `src/services/analyticsService.ts:74` and `src/services/leaderboardService.ts:40`, but **no insert/write** to `study_sessions` found anywhere in frontend code. FocusRoom only calls `addXP` locally. |
+| 24 | Analytics dashboard with charts | **WORKING** | `src/pages/Analytics.tsx`, `src/services/analyticsService.ts` — weekly trends, focus scores, time blocks, subject performance. Falls back to sample data when no sessions exist. Route `/analytics`. |
+| 25 | Leaderboard | **WORKING** | `src/services/leaderboardService.ts` — queries `users` table sorted by XP (week/month/all), falls back to localStorage with static entries. Rendered in `src/pages/Community.tsx`. |
+| 26 | Community forum posts | **WORKING** | `src/services/communityService.ts` — `getForumPosts`, `createForumPost` (Supabase with localStorage fallback including 6 static posts). `src/pages/Community.tsx` + `src/components/DiscussionForum.tsx`. |
+| 27 | Forum likes/replies | **WORKING** | `src/services/communityService.ts` — `likeForumPost`, `unlikeForumPost`, `getForumReplies`, `createForumReply` (Supabase + localStorage fallback with static replies). |
+| 28 | Mentor matching/chat | **WORKING** | `src/services/communityService.ts` — `getMentors`, `connectWithMentor` (Supabase + localStorage fallback with 20 static mentors). `src/components/MentorChat.tsx` — real-time chat via Supabase. Rendered in `src/pages/Community.tsx`. |
+| 29 | Study groups | **WORKING** | `src/services/communityService.ts` — `getStudyGroups`, `joinStudyGroup`, `leaveStudyGroup` (Supabase + localStorage fallback with 18 static groups). Rendered in `src/pages/Community.tsx`. |
+| 30 | Study group chat | **WORKING** | `src/components/StudyGroupChat.tsx` — messages via Supabase real-time, used in `src/pages/Community.tsx`. |
+| 31 | Google Classroom sync | **WORKING** | `src/hooks/useGoogleClassroom.ts` — Google OAuth token flow, `src/services/classroomService.ts` — fetches courses/assignments, `src/components/ClassroomAssignmentsPanel.tsx` for UI. Used in `src/pages/StudyPlanner.tsx`. |
+| 32 | Translation (RapidAPI Deep Translate) | **WORKING** | `src/services/translateService.ts` — full implementation with caching, rate limiting, queue, 33 supported languages. Used by `src/hooks/useTranslation.ts` and `src/components/TranslatedText.tsx`. |
+| 33 | Code editor (Monaco) | **WORKING** | `src/components/IDE.tsx` — `@monaco-editor/react` with multi-language support (JS, Python, Java, C++, Go, Rust), starter snippets. Used in `src/pages/CourseDetail.tsx`. |
+| 34 | Code execution (Judge0) | **WORKING** | `src/components/IDE.tsx` — submits code to Judge0 CE API (`VITE_JUDGE0_URL`), polls for results, displays stdout/stderr/compile output. Language ID mapping included. |
+| 35 | 3D/VR study room | **UI ONLY** | `src/pages/StudyVR.tsx` — displays a link to `https://framevr.io/edura` (external Frame VR) with copy-to-clipboard. No actual 3D rendering on-page. 3D components in `src/components/3D/` are for the landing page hero, not the VR room. Route `/study-vr`. |
+| 36 | Voice assistant | **WORKING** | `src/components/VoiceAssistant.tsx` — Web Speech API (`SpeechRecognition` + `SpeechSynthesis`), sends transcript to `chatWithGemini`, speaks response. Rendered globally in `src/App.tsx:55` for authenticated users. |
+| 37 | External courses (Udemy/Coursera) | **WORKING** | `server/index.js` — Express endpoint `/api/courses/external` returns 12 static course entries (scrapers exist but return static data). `src/services/courseService.ts` fetches them, displayed in `src/pages/Courses.tsx`. |
+| 38 | File upload to Supabase Storage | **WORKING** | `src/services/notesService.ts:18` (`uploadNoteFile`) — uploads to Supabase Storage `notes` bucket, returns public URL. Used in Notes page file upload flow. |
+| 39 | Dark/light theme toggle | **WORKING** | `src/store/themeStore.ts` — light/dark/colorblind/dyslexia modes, `src/components/ThemeProvider.tsx` applies class to document, `src/pages/Settings.tsx:99` — dropdown to switch modes. |
+| 40 | Route protection (auth guard) | **WORKING** | `src/App.tsx:33` — `ProtectedRoute` component checks `useUserStore.isAuthenticated`, redirects to `/login`. Applied to all protected routes (dashboard, AI bot, notes, courses, etc.). |
